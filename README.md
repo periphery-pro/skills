@@ -1,6 +1,6 @@
 # Periphery Skills
 
-Agent skills for [Periphery](https://periphery.pro), a tool that finds unused code in Swift projects.
+Agent skills for [Periphery](https://periphery.pro).
 
 ## Install
 
