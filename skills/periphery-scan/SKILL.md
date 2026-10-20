@@ -1,43 +1,29 @@
 ---
 name: periphery-scan
-description: Runs a Periphery scan for unused Swift code in a project where Periphery is already set up. Use when a user asks to run Periphery, scan for unused or dead Swift code, or find and remove unused code with Periphery. If Periphery isn't installed, signed in or configured for the project, use periphery-scan-setup instead.
+description: Runs a Periphery scan for unused Swift code in a project where Periphery is already set up. Use when a user asks to run Periphery, scan for unused or dead Swift code, or find and remove unused code with Periphery. To install, sign in to or configure Periphery, use periphery-scan-setup instead.
 ---
 
 # Periphery Scan
 
 ## Overview
 
-Run `periphery scan` with the `agent-prompt` output format, which lists each result with removal guidance written for agents. The project's `.periphery.yml` supplies the options, so the scan itself needs no decisions. If anything about the setup is missing, hand over to the periphery-scan-setup skill rather than configuring Periphery here.
+Run `periphery scan` with the `agent-prompt` output format, which lists each result with removal guidance written for agents. Assume Periphery is installed and signed in, and that the project's `.periphery.yml` holds its options. Don't check any of that up front: scan straight away, and look into the setup only if the scan fails.
 
 ## Steps
 
-### 1. Check that Periphery is set up
-
-**Bazel** (`MODULE.bazel`, `WORKSPACE` or `BUILD.bazel`): look in the BUILD files for a runnable `rules_periphery` target, usually `scan_auto` (often `//:scan_auto`) or `scan`. If there's none, go to periphery-scan-setup.
-
-**Everything else:**
-- Run `periphery auth status`.
-  - If `periphery` isn't found, or the `auth` command doesn't exist (an outdated or open-source release), go to periphery-scan-setup.
-  - If it exits non-zero because there's no credential, the user must sign in. `periphery auth login` opens a browser, so ask the user to run it themselves (in Claude Code: `! periphery auth login`). Never ask for an access token's value.
-- Look for `.periphery.yml`, or `.periphery.yaml`, in the project root.
-  - If there's neither, a Swift package (`Package.swift` and no Xcode project) scans fine with the defaults.
-  - Anything else without a config file isn't configured: go to periphery-scan-setup.
-
-To go to periphery-scan-setup, tell the user what's missing and use that skill. If it isn't installed, they can add it with `npx skills add periphery-pro/skills --skill periphery-scan-setup`, or set up Periphery by following https://periphery.pro/docs/running-a-scan.
-
-### 2. Scan
+### 1. Scan
 
 ```sh
 periphery scan --format agent-prompt > <output file>
 ```
 
-For Bazel: `bazel run <scan target> -- --format agent-prompt > <output file>`.
+For Bazel, run the project's `rules_periphery` scan target instead, usually `//:scan_auto`: `bazel run //:scan_auto -- --format agent-prompt > <output file>`.
 
 - Save the output to a file outside the project, such as in a temporary directory, so you can read it without scanning again.
 - Scanning builds the project, which can take many minutes. Tell the user, and run it with a long timeout or in the background.
 - Don't add other options unless the user asked for them. The config file holds the project's choices, and options passed on the command line override them.
 
-### 3. Report, then remove if asked
+### 2. Report, then remove if asked
 
 If the output says `No unused code detected.`, tell the user and stop.
 
@@ -52,12 +38,19 @@ Then:
 
 Before removing, suggest a clean working tree or a new branch, since removal touches many files. Then follow the removal task and guidance in the output. If removing code leaves a file empty, delete the file and remove its references from the Xcode project, or the build fails. When you're done, tell the user what you removed and offer to scan again: removing code can leave other code unused.
 
-### 4. If the scan fails
+### 3. If the scan fails
 
-Tell the user what failed, quoting the key error line.
-- `No account credential found`: the user must sign in, as in step 1.
-- Errors about the project, schemes or targets, such as a project or scheme that can't be found, mean the configuration is out of date. Go to periphery-scan-setup.
-- Otherwise, read https://periphery.pro/docs/troubleshooting for known issues. Propose any change to the project, build settings or `.periphery.yml`, and wait for the user to confirm it.
+Tell the user what failed, quoting the key error line. Then:
+
+| Error | Cause | Fix |
+|---|---|---|
+| `periphery: command not found`, or `--format` doesn't accept `agent-prompt` | Not installed, or an outdated or open-source release | Hand over to periphery-scan-setup |
+| `No account credential found` | Not signed in | `periphery auth login` opens a browser, so ask the user to run it themselves (in Claude Code: `! periphery auth login`), then scan again. Never ask for an access token's value. |
+| `Failed to identify project`, or a project, scheme or target that can't be found | No `.periphery.yml`, or it's out of date | Hand over to periphery-scan-setup |
+| No `rules_periphery` scan target (Bazel) | Not set up | Hand over to periphery-scan-setup |
+| Anything else | | Read https://periphery.pro/docs/troubleshooting. Propose any change to the project, build settings or `.periphery.yml`, and wait for the user to confirm it. |
+
+To hand over, tell the user what's missing and use the periphery-scan-setup skill. If it isn't installed, they can add it with `npx skills add periphery-pro/skills --skill periphery-scan-setup`, or set up Periphery by following https://periphery.pro/docs/running-a-scan.
 
 If you can't resolve it, offer to open an issue at https://github.com/periphery-pro/issues, following periphery-scan-setup's failure step. The tracker is public, so the issue must be anonymous: replace every project, scheme, target, module, file, type, user, path and company name with placeholders, include no source code, and post only after the user approves the full text.
 
@@ -65,6 +58,7 @@ If you can't resolve it, offer to open an issue at https://github.com/periphery-
 
 | Mistake | Fix |
 |---|---|
+| Checking the install, sign-in or config before scanning | Scan first; investigate only on failure |
 | Writing or editing `.periphery.yml` to get a scan working | Hand over to periphery-scan-setup |
 | Adding `--schemes`, `--retain-public` or other options on the command line | Let the config file supply them |
 | Removing code when the user only asked for a scan | Summarize, then offer removal |
