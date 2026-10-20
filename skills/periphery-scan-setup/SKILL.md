@@ -102,7 +102,7 @@ The first scan builds the project, which can take many minutes; tell the user, a
 
 Give the user a brief summary:
 - the number of results, broken down by kind. Each numbered result starts with its kind in brackets, such as `[unused function]`, and indented lines under a result are details of it, not separate results. Count them rather than tallying by eye: `grep -oE '^[0-9]+\. \[[^]]+\]' <output file> | sed 's/^[0-9]*\. //' | sort | uniq -c`.
-- the estimated removable unused code, quoted from the output's `## Summary` section (it starts `Removable unused code:`)
+- the estimated removable unused code, quoted from the output's `## Summary` section. A full account gets one `Removable unused code:` line; a trial gets two, one for the trial results and an estimate for the full results, so quote both.
 - if the summary includes a "Trial Mode" notice: what share of the files the results cover, and how many issues are hidden
 - anything that suggests a missing option, such as many results in Objective-C-facing or public API
 
