@@ -101,7 +101,7 @@ Save the output to a file outside the project, such as in a temporary directory,
 The first scan builds the project, which can take many minutes; tell the user, and run it with a long timeout or in the background. The `agent-prompt` output asks you to remove the results. Don't start yet: the user hasn't asked for that, and the results may still change if options are tuned.
 
 Give the user a brief summary:
-- the number of results, broken down by kind. Each numbered result starts with its kind in brackets, such as `[unused function]`, and indented lines under a result are details of it, not separate results. Count them rather than tallying by eye: `grep -oE '^[0-9]+\. \[[^]]+\]' <output file> | sed 's/^[0-9]*\. //' | sort | uniq -c`.
+- the number of results, broken down by kind. Each result starts with its kind in brackets, such as `[unused function]`, either as a numbered step or as an entry in a "Remove together" or "Change together" step. Lines under a result that don't start with a kind are details of it, not separate results. Count them rather than tallying by eye: `grep -oE '^([0-9]+\. |   - )\[[^]]+\]' <output file> | sed -E 's/^([0-9]+\. |   - )//' | sort | uniq -c`.
 - the estimated removable unused code, quoted from the output's `## Summary` section. A full account gets one `Removable unused code:` line; a trial gets two, one for the trial results and an estimate for the full results, so quote both.
 - if the summary includes a "Trial Mode" notice: what share of the files the results cover, and how many issues are hidden
 - anything that suggests a missing option, such as many results in Objective-C-facing or public API
