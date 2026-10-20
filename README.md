@@ -18,6 +18,7 @@ npx skills add periphery-pro/skills --skill periphery-scan-setup -a claude-code
 
 | Skill | Description |
 | --- | --- |
+| [periphery-scan](skills/periphery-scan) | Runs a scan in a project where Periphery is set up, and removes the unused code it finds if you ask. |
 | [periphery-scan-setup](skills/periphery-scan-setup) | Sets up Periphery for your project with your agent's help and runs your first scan. An alternative to `periphery scan --setup`. |
 
 ## Issues
